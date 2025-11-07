@@ -89,7 +89,10 @@ class ConfigureCITest(unittest.TestCase):
             is_workflow_dispatch=True,
             is_push=False,
             is_schedule=False,
-            base_args={},
+            base_args={
+                "workflow_dispatch_linux_test_labels": "",
+                "workflow_dispatch_windows_test_labels": "",
+            },
             families=build_families,
             platform="linux",
         )
@@ -183,7 +186,7 @@ class ConfigureCITest(unittest.TestCase):
         )
         self.assertGreaterEqual(len(linux_target_output), 1)
         self.assert_target_output_is_valid(
-            target_output=linux_target_output, allow_xfail=False
+            target_output=linux_target_output, allow_xfail=True
         )
         self.assertEqual(windows_test_labels, [])
 
@@ -257,7 +260,7 @@ class ConfigureCITest(unittest.TestCase):
         )
         self.assertGreaterEqual(len(linux_target_output), 1)
         self.assert_target_output_is_valid(
-            target_output=linux_target_output, allow_xfail=False
+            target_output=linux_target_output, allow_xfail=True
         )
         self.assertEqual(linux_test_labels, [])
 

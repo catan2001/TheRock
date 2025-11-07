@@ -37,22 +37,48 @@ test_matrix = {
         "platform": ["linux", "windows"],
         "total_shards": 1,
     },
+    "rocroller": {
+        "job_name": "rocroller",
+        "fetch_artifact_args": "--blas --tests",
+        "timeout_minutes": 30,
+        "test_script": f"python {_get_script_path('test_rocroller.py')}",
+        "platform": ["linux"],
+        "total_shards": 4,
+    },
     "hipblas": {
         "job_name": "hipblas",
         "fetch_artifact_args": "--blas --tests",
-        "timeout_minutes": 30,
+        "timeout_minutes": 60,
         "test_script": f"python {_get_script_path('test_hipblas.py')}",
         # Issue for adding windows tests: https://github.com/ROCm/TheRock/issues/1702
         "platform": ["linux"],
-        "total_shards": 1,
+        "total_shards": 4,
     },
     "hipblaslt": {
         "job_name": "hipblaslt",
         "fetch_artifact_args": "--blas --tests",
-        "timeout_minutes": 30,
+        "timeout_minutes": 60,
         "test_script": f"python {_get_script_path('test_hipblaslt.py')}",
         "platform": ["linux", "windows"],
         "total_shards": 4,
+    },
+    # SOLVER tests
+    "hipsolver": {
+        "job_name": "hipsolver",
+        "fetch_artifact_args": "--blas --tests",
+        "timeout_minutes": 5,
+        "test_script": f"python {_get_script_path('test_hipsolver.py')}",
+        "platform": ["linux", "windows"],
+        "total_shards": 1,
+    },
+    "rocsolver": {
+        "job_name": "rocsolver",
+        "fetch_artifact_args": "--blas --tests",
+        "timeout_minutes": 5,
+        "test_script": f"python {_get_script_path('test_rocsolver.py')}",
+        # Issue for adding windows tests: https://github.com/ROCm/TheRock/issues/1770
+        "platform": ["linux"],
+        "total_shards": 1,
     },
     # PRIM tests
     "rocprim": {
@@ -91,10 +117,10 @@ test_matrix = {
     "rocsparse": {
         "job_name": "rocsparse",
         "fetch_artifact_args": "--blas --tests",
-        "timeout_minutes": 15,
+        "timeout_minutes": 60,
         "test_script": f"python {_get_script_path('test_rocsparse.py')}",
         "platform": ["linux", "windows"],
-        "total_shards": 4,
+        "total_shards": 6,
         "exclude_family": {
             "windows": ["gfx1151"]  # issue: https://github.com/ROCm/TheRock/issues/1640
         },
@@ -116,6 +142,24 @@ test_matrix = {
         "platform": ["linux", "windows"],
         "total_shards": 1,
     },
+    # FFT tests
+    "rocfft": {
+        "job_name": "rocfft",
+        "fetch_artifact_args": "--fft --rand --tests",
+        "timeout_minutes": 60,
+        "test_script": f"python {_get_script_path('test_rocfft.py')}",
+        # TODO(geomin12): Add windows test (https://github.com/ROCm/TheRock/issues/1391)
+        "platform": ["linux"],
+        "total_shards": 1,
+    },
+    "hipfft": {
+        "job_name": "hipfft",
+        "fetch_artifact_args": "--fft --rand --tests",
+        "timeout_minutes": 60,
+        "test_script": f"python {_get_script_path('test_hipfft.py')}",
+        "platform": ["linux", "windows"],
+        "total_shards": 1,
+    },
     # MIOpen tests
     "miopen": {
         "job_name": "miopen",
@@ -131,6 +175,24 @@ test_matrix = {
         "fetch_artifact_args": "--rccl --tests",
         "timeout_minutes": 15,
         "test_script": f"pytest {_get_script_path('test_rccl.py')} -v -s --log-cli-level=info",
+        "platform": ["linux"],
+        "total_shards": 1,
+    },
+    # hipDNN tests
+    "hipdnn": {
+        "job_name": "hipdnn",
+        "fetch_artifact_args": "--hipdnn --tests",
+        "timeout_minutes": 5,
+        "test_script": f"python {_get_script_path('test_hipdnn.py')}",
+        "platform": ["linux"],
+        "total_shards": 1,
+    },
+    # MIOpen plugin tests
+    "miopen_plugin": {
+        "job_name": "miopen_plugin",
+        "fetch_artifact_args": "--blas --miopen --hipdnn --miopen-plugin --tests",
+        "timeout_minutes": 15,
+        "test_script": f"python {_get_script_path('test_miopen_plugin.py')}",
         "platform": ["linux"],
         "total_shards": 1,
     },

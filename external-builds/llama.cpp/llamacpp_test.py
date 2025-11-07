@@ -10,15 +10,16 @@ or an optional log file.
 Test binaries are discovered dynamically from the build directory.
 """
 
-import argparse
-import logging
 import os
+import sys
+import logging
+import argparse
 import subprocess
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 LLAMA_BIN_DIR = Path(
-    os.getenv("LLAMA_BUILD_DIR", SCRIPT_DIR / "llama.cpp" / "build" / "bin")
+    os.getenv("LLAMACPP_BUILD_DIR", SCRIPT_DIR / "llama.cpp" / "build" / "bin")
 )
 
 TESTS_TO_IGNORE = [
@@ -60,18 +61,19 @@ def setup_logging(log_file=None):
     )
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Run llama.cpp tests.")
-    parser.add_argument(
+def main(argv: list[str]):
+    p = argparse.ArgumentParser(description="Run llama.cpp tests.")
+    p.add_argument(
         "--save-logging", metavar="FILE", help="Save logs to a specified file"
     )
-    args = parser.parse_args()
+    args = p.parse_args(argv)
 
     setup_logging(args.save_logging)
 
     test_type = os.getenv("TEST_TYPE", "full")
+    pattern = "test-*.exe" if os.name != "posix" else "test-*"
     all_tests = [
-        p for p in LLAMA_BIN_DIR.glob("test-*") if p.name not in TESTS_TO_IGNORE
+        p for p in LLAMA_BIN_DIR.glob(pattern) if p.stem not in TESTS_TO_IGNORE
     ]
 
     if test_type == "smoke":
@@ -95,4 +97,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

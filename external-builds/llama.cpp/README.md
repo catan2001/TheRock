@@ -1,76 +1,121 @@
-# Build llama.cpp with ROCm support
+# Build llama.cpp with ROCm Support
 
-This integration adds `llama.cpp` as an external subproject to TheRock, enabling AMD GPU acceleration via ROCm.
+This integration adds **`llama.cpp`** as an external subproject to **TheRock**, enabling AMD GPU acceleration via the **ROCm** platform.
 
-`llama.cpp` is an open-source project that provides a lightweight, efficient C/C++ implementation of LLaMA (Large Language Model) models. It enables running these models locally on CPU and GPU with minimal dependencies, making it accessible for experimentation, research, and integration into custom applications. The project emphasizes portability and performance, supporting a wide range of platforms and hardware configurations.
+[`llama.cpp`](https://github.com/ggerganov/llama.cpp) is an open-source project providing a lightweight, efficient C/C++ implementation of **Large Language Model** architectures. It enables running LLMs locally on CPU and GPU with minimal dependencies. Designed for **portability**, **performance**, and **ease of integration**, it serves as an ideal backend for research, development, and embedded AI applications.
 
-## Support status
+This document describes how to configure, build, and test `llama.cpp` as part of TheRock build system with ROCm acceleration enabled.
 
-| Project / feature | Linux support       | Windows support |
-| ----------------- | ------------------- | --------------- |
-| llama.cpp         | ❌ Not Fully Tested | ❌ Not Tested   |
+______________________________________________________________________
 
-- Note: Building rocWMMA is currently not implemented in TheRock.
+## Table of Contents
 
-## Build instructions
+- [Support Status](#support-status)
+- [Build Instructions](#build-instructions)
+- [Running / Testing llama.cpp](#running--testing-llamacpp)
 
-### Prerequisites and setup
+## Support Status
+
+| Project / Feature | Linux Support   | Windows Support |
+| ----------------- | --------------- | --------------- |
+| **llama.cpp**     | ✅ Passes Tests | ✅ Passes Tests |
+
+> [!NOTE]
+> Building **rocWMMA** is currently **not implemented** in TheRock.
+
+> [!WARNING]
+> Certain tests are known to fail on **gfx1030** and **gfx1031** GPU targets.
+
+## Build Instructions
+
+By default, scripts use the **upstream** `llama.cpp` repository.
+You can modify the source path or reference your own fork if desired.
+
+### Prerequisites and Setup
+
+The provided build scripts assume:
+
+- You have already completed a **full ROCm build** using TheRock.
+- You have the **`rocm-sdk`** tool installed, which is used internally to:
+  - Locate the ROCm build directory.
+  - Identify available AMD GPU targets.
+- You have environemnt variables set up correctly for ROCm, including PATH updates to find ROCm libraries at runtime.
 
 Before building, ensure the following:
 
-- ROCm is installed (default path assumed: /opt/rocm).
-- Python 3 is available.
-- CMake is installed.
-- You have access to an AMD GPU supported by ROCm (default target: gfx1100).
+- **ROCm is installed** and accessible.
+- You have **Python 3.8+** installed and accessible.
+
+> [!NOTE]
+> The default path is determined automatically using `rocm-sdk path --root`
 
 ### Quickstart
 
-1. Prepare llama.cpp
+Building `llama.cpp` is a two-step process:
 
-Use the provided script to clone and prepare the repository:
+1. **Clone the Repository**
 
-```bash
-python /llamacpp_repo.py
+   Use the `llamacpp_repo.py` script to download and prepare the `llama.cpp` sources:
 
-# Optional arguments:
-#
-# --repo: Local path to clone or use the repository (default: ./llama.cpp)
-# --repo-hashtag: Branch, tag, or commit to fetch (default: #amd-integration)
-# --gitrepo-origin: Remote URL (default: https://github.com/ROCm/llama.cpp.git)
-# --depth: Shallow fetch depth
-# --jobs: Number of parallel fetch jobs (default: 10)
+   ```bash
+   python llamacpp_repo.py
+   ```
+
+1. **Build with ROCm Support**
+
+   Then build the project using the `llamacpp_build.py` script:
+
+   ```bash
+   python llamacpp_build.py
+   ```
+
+> [!NOTE]
+> Check scripts for detailed explanation
+
+The build process automatically detects supported AMD GPU targets and configures CMake.
+
+## Running / Testing llama.cpp
+
+After the build completes, the compiled binaries and shared libraries can be found under:
+
+```
+llama.cpp/build/bin
 ```
 
-Check the script for detailed explanation.
+You can manually run the generated executables, but the recommended approach is to use the automated test runner.
 
-2. Build llama.cpp
-   Run the build script:
+> [!TIP]
+> If you built `llama.cpp` in a custom directory, you can define an environment variable to make it easier to locate:
+>
+> ```bash
+> export LLAMACPP_BUILD_DIR=/path/to/custom/build
+> ```
+>
+> The scripts will automatically reference this variable.
 
-```bash
-./llamacpp_build.py
+### Test Execution
 
-# Optional arguments:
-#
-# --rocm-dir: Path to ROCm installation (default: /opt/rocm)
-# --llama-dir: Path to llama.cpp source (default: ./llama.cpp)
-# --build-dir: Path to build directory (default: ./llama.cpp/build)
-# --cmake-build-type: CMake build type (default: Release)
-# --gpu-targets: AMD GPU target(s) (default: gfx1100)
-# --jobs: Number of parallel build jobs
-# --llama-curl: Enable libcurl support
-# --llama-openssl: Enable OpenSSL support
-# --llama-llguidance: Enable LLGuidance support
-# --clean: Clean build directory before building
-```
+To verify functionality, use the **`llamacpp_test.py`** script.
+It automatically discovers all test binaries in `build/bin`, runs them, and provides a clean summary.
 
-## Detailed Test
-
-Rather than running test binaries directly, use the provided test runner script which invokes the tests found in llama.cpp/build/bin and will skip known problematic cases:
+Example:
 
 ```bash
-# from this directory (external-builds/llama.cpp)
+# From external-builds/llama.cpp directory
 python ./llamacpp_test.py
-# --save-logging <file>
 ```
 
-The script discovers test binaries under llama.cpp/build/bin, runs them, and prints a concise summary. It intentionally skips specific tests (see [llamacpp_test.py](./llamacpp_test.py) for the exact skip rules and any available command-line options).
+You can optionally save logs for later analysis:
+
+```bash
+python ./llamacpp_test.py --save-logging test_results.log
+```
+
+The test runner:
+
+- Finds all valid test executables under the `build/bin` directory.
+- Skips known failing or unsupported tests.
+- Prints a concise summary with success/failure counts.
+
+> [!NOTE]
+> Refer to the source code of [llamacpp_test.py](./llamacpp_test.py) for detailed information on skip rules, supported arguments, and logging options.
